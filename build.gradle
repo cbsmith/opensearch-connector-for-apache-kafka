@@ -135,6 +135,7 @@ ext {
     apacheCommonsLangVersion = "3.17.0"
     slf4jVersion = "1.7.36"
     openSearchVersion = "2.18.0"
+    awsSdkVersion = "2.29.29"
 
     testcontainersVersion = "1.20.4"
 }
@@ -174,6 +175,12 @@ dependencies {
     implementation "com.google.code.gson:gson:2.11.0"
     implementation "org.opensearch.client:opensearch-rest-high-level-client:$openSearchVersion"
     implementation "org.apache.commons:commons-lang3:$apacheCommonsLangVersion"
+    
+    // AWS SDK for IAM authentication and request signing
+    implementation "software.amazon.awssdk:auth:$awsSdkVersion"
+    implementation "software.amazon.awssdk:opensearch:$awsSdkVersion"
+    implementation "software.amazon.awssdk:apache-client:$awsSdkVersion"
+    implementation "software.amazon.awssdk:imds:$awsSdkVersion"
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.0"
     testImplementation "org.mockito:mockito-core:5.12.0"

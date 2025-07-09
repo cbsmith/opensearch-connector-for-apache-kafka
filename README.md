@@ -82,6 +82,114 @@ curl http://localhost:8083/connector-plugins | jq .
 
 [OpenSearch® Sink Connector Configuration Options](docs/opensearch-sink-connector-config-options.rst)
 
+## AWS OpenSearch Serverless Support
+
+The connector supports AWS OpenSearch Serverless with IMDSv2/IAM authentication. This enables secure connection to AWS OpenSearch Service without requiring username/password authentication.
+
+### AWS Configuration Options
+
+The connector provides several AWS-specific configuration options:
+
+| Configuration | Description | Default |
+|---------------|-------------|---------|
+| `aws.region` | AWS region for the OpenSearch service | Auto-detected from environment/EC2 metadata |
+| `aws.credentials.provider` | Credential provider type: `default`, `static`, or `instance_profile` | `default` |
+| `aws.access.key.id` | AWS access key ID (for static credentials) | None |
+| `aws.secret.access.key` | AWS secret access key (for static credentials) | None |
+| `aws.session.token` | AWS session token (for temporary credentials) | None |
+| `aws.service.name` | AWS service name for request signing | `es` |
+
+### AWS Authentication Methods
+
+**1. Instance Profile (Recommended for EC2)**
+```properties
+connector.class=io.aiven.kafka.connect.opensearch.OpensearchSinkConnector
+connection.url=https://search-domain.us-east-1.opensearch.amazonaws.com
+aws.credentials.provider=instance_profile
+aws.region=us-east-1
+aws.service.name=opensearch
+topics=my-topic
+key.ignore=true
+```
+
+**2. Static Credentials**
+```properties
+connector.class=io.aiven.kafka.connect.opensearch.OpensearchSinkConnector
+connection.url=https://search-domain.us-east-1.opensearch.amazonaws.com
+aws.credentials.provider=static
+aws.access.key.id=AKIAIOSFODNN7EXAMPLE
+aws.secret.access.key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+aws.region=us-east-1
+aws.service.name=opensearch
+topics=my-topic
+key.ignore=true
+```
+
+**3. Temporary Credentials (with session token)**
+```properties
+connector.class=io.aiven.kafka.connect.opensearch.OpensearchSinkConnector
+connection.url=https://search-domain.us-east-1.opensearch.amazonaws.com
+aws.credentials.provider=static
+aws.access.key.id=AKIAIOSFODNN7EXAMPLE
+aws.secret.access.key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+aws.session.token=AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKwRcOIfrRh3c/LTo6UDdyJwOOvEVPvLXCrrrUtdnniCEXAMPLE/IvU1dYUg2RVAJBanLiHb4IgRmpRV3zrkuWJOgQs8IZZaIv2BXIa2R4OlgkBN9bkUDNCJiBeb/AXlzBBko7b15fjrBs2+cTQtpZ3CYWFXG8C5zqx37wnOE49mRl/+OtkIKGO7fAE
+aws.region=us-east-1
+aws.service.name=opensearch
+topics=my-topic
+key.ignore=true
+```
+
+### IMDSv2 Support
+
+The connector automatically supports EC2 Instance Metadata Service v2 (IMDSv2) when:
+- Running on EC2 instances
+- Using `instance_profile` credentials provider
+- No explicit region is configured (auto-detected from EC2 metadata)
+
+### IAM Permissions
+
+When using IAM authentication, ensure your IAM role or user has the necessary permissions for OpenSearch operations:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "es:ESHttpPost",
+                "es:ESHttpPut",
+                "es:ESHttpGet",
+                "es:ESHttpHead"
+            ],
+            "Resource": "arn:aws:es:region:account-id:domain/domain-name/*"
+        }
+    ]
+}
+```
+
+For OpenSearch Serverless, use the `opensearch` service prefix:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "opensearch:APIAccessAll"
+            ],
+            "Resource": "arn:aws:opensearch:region:account-id:collection/collection-name"
+        }
+    ]
+}
+```
+
+### Example Configuration Files
+
+- **Basic configuration**: [`config/quickstart-opensearch.properties`](config/quickstart-opensearch.properties)
+- **AWS configuration**: [`config/quickstart-opensearch-aws.properties`](config/quickstart-opensearch-aws.properties)
+
 ## QuickStart guide
 
 1. Ensure that the required software is installed and running
